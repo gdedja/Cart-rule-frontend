@@ -1,0 +1,370 @@
+{% assign collection = section.settings.collection %}
+{% assign per_page = section.settings.products_per_page %}
+
+<div class="custom-products-wrapper page-width">
+  {% if section.settings.section_title %}
+    <h2>{{ section.settings.section_title }}</h2>
+  {% endif %}
+
+  {% if section.settings.section_description %}
+    <p>{{ section.settings.section_description }}</p>
+  {% endif %}
+
+  {% assign product1_handle = shop.metaobjects.product_bundle_rule['product-bundle-rule-eeelmoot'].product_1 %}
+  {% assign product2_handle = shop.metaobjects.product_bundle_rule['product-bundle-rule-eeelmoot'].product_2 %}
+  {% assign free_handle = shop.metaobjects.product_bundle_rule['product-bundle-rule-eeelmoot'].free_product %}
+
+  {% assign product1 = all_products[product1_handle] %}
+  {% assign product2 = all_products[product2_handle] %}
+  {% assign free_product = all_products[free_handle] %}
+
+  <p>Add <strong>{{ product1.title }}</strong> and <strong>{{ product2.title }}</strong> to your cart to receive <strong>{{ free_product.title }}</strong>!</p>
+
+  {% paginate collection.products by per_page %}
+    <div class="custom-products">
+      {% for product in collection.products %}
+        <div class="custom-product-card {% if section.settings.columns == 'col_2' %}flex{% endif %}" tabindex="0" data-url="{{ product.url }}">
+          <div class="custom-product-image" style="background-image: url({{ product.featured_image | img_url: 'master' }})"></div>
+          <div class="custom-product-body">
+            <div>
+              <h4 class="custom-product-title">{{ product.title }}</h4>
+              <span class="custom-product-price">{{ product.price | money }}</span>
+            </div>
+            <div class="custom-product-description">{{ product.description | truncate: 30 }}</div>
+
+            <div class="custom-product-divider"></div>
+
+            <div class="custom-product-tags">
+              {% for tag in product.tags limit:2 %}
+                <span>{{ tag }}</span>
+              {% endfor %}
+
+              {% if product.tags.size > 2 %}
+                <span>+{{ product.tags.size | minus: 2 }}</span>
+              {% endif %}
+            </div>
+
+            <div class="custom-product-form">
+              <product-form>
+                {%- form 'product',
+                  product,
+                  id: product_form_id,
+                  class: 'form',
+                  novalidate: 'novalidate',
+                  data-type: 'add-to-cart-form'
+                -%}
+                  <input type="hidden" name="id" value="{{ product.variants.first.id }}">
+                  <button type="submit" class="custom-add-to-cart">Add to Cart</button>
+                  <span class="loading__spinner hidden">Loading...</span>
+                  <div class="product-form__error-message-wrapper" hidden>
+                    <span class="product-form__error-message"></span>
+                  </div>
+                {% endform %}
+              </product-form>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="custom-pagination">
+      {{- paginate | default_pagination }}
+    </div>
+
+  {% endpaginate %}
+</div>
+
+
+<script>
+  document.querySelectorAll('.custom-product-card').forEach(card => {
+    card.addEventListener('click', function (event) {
+      // Check if the clicked target is not the "Add to Cart" button
+      const isAddToCartButton = event.target.closest('.custom-add-to-cart');
+      if (!isAddToCartButton) {
+        // Redirect to product page
+        document.location = this.getAttribute("data-url");
+      }
+    });
+  });
+
+</script>
+
+<script src="{{ 'product-form.js' | asset_url }}" defer="defer"></script>
+
+<style>
+.custom-products-section {
+	padding-top: 100px;
+	padding-bottom: 100px;
+}
+.custom-products-wrapper {
+	padding-left: 36px;
+	padding-right: 36px;
+}
+.custom-products {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: stretch;
+	justify-content: center;
+	gap: 51px;
+}
+.custom-product-card {
+	border-radius: 12px;
+	background: #F8F8F8;
+	width: calc(33% - 34px);
+	max-width: 342px;
+	min-width: 300px;
+	cursor: pointer;
+    overflow: hidden;
+    transition: opacity 0.3s ease; /* Add transition for opacity */
+}
+.custom-product-image {
+	display: block !important;
+	width: 100%;
+	height: 222px;
+	background-size: cover;
+	background-position: center;
+}
+.custom-product-body {
+	display: flex;
+	padding: 24px;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 16px;
+}
+.custom-product-title {
+	color: #000;
+	font-feature-settings: 'liga' off, 'clig' off;
+	font-family: "Source Code Pro";
+	font-size: 18px;
+	font-style: normal;
+	font-weight: 500;
+	line-height: normal;
+	margin: 0;
+}
+.custom-product-price {
+	color: #181818;
+	font-feature-settings: 'liga' off, 'clig' off;
+	font-family: "Source Code Pro";
+	font-size: 14px;
+	font-style: normal;
+	font-weight: 400;
+	line-height: normal;
+}
+.custom-product-description {
+	color: #666;
+	font-feature-settings: 'liga' off, 'clig' off;
+	font-family: "Source Code Pro";
+	font-size: 14px;
+	font-style: normal;
+	font-weight: 400;
+	line-height: normal;
+	margin: 0;
+}
+.custom-product-divider {
+	display: block !important;
+	width: 100%;
+	height: 1px;
+	background: #C4C4C4;
+}
+.custom-product-tags {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+.custom-product-tags span {
+  display: block;
+  padding: 8px 12px;
+  border-radius: 100px;
+  border: 1px solid #3C3C43;
+  color: #3C3C43;
+  font-feature-settings: 'liga' off, 'clig' off;
+  font-family: "Source Code Pro";
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+}
+.custom-add-to-cart {
+	border-radius: 12px;
+	border: 1px solid #3C3C43;
+	background: #3C3C43;
+	padding: 8px 16px;
+	color: #FFF;
+	font-feature-settings: 'liga' off, 'clig' off;
+	font-family: "Source Code Pro";
+	font-size: 12px;
+	font-style: normal;
+	font-weight: 400;
+	line-height: normal;
+	width: fit-content;
+	display: block;
+    cursor: pointer;
+}
+.custom-product-card.flex {
+	width: calc(50% - 57px);
+	max-width: 552px;
+	min-width: 400px;
+    display: flex;
+    align-items: stretch;
+}
+.custom-product-card.flex .custom-product-tags, .custom-product-card.flex .custom-product-divider {
+    display: none !important;
+}
+.custom-product-card.flex .custom-product-image {
+	width: 144px;
+	height: 100%;
+}
+.custom-product-card.flex .custom-product-body {
+	gap: unset;
+	display: block;
+}
+.custom-product-card.flex .custom-product-description {
+	margin-top: 16px;
+	margin-bottom: 42px;
+}
+.custom-product-card:hover {
+    background: rgba(255, 204, 204, 0.8); /* Light red tint on hover */
+    transition: background 0.3s ease;
+}
+
+.custom-product-card:hover .custom-add-to-cart {
+    background: rgba(255, 204, 204, 0.8); /* Light red tint */
+    color: #3C3C43; /* Change text color to dark */
+    transition: background 0.3s ease, color 0.3s ease; /* Smooth transition */
+}
+
+.custom-products .custom-product-card {
+    opacity: 0.8; /* Default opacity for all cards */
+}
+
+.custom-products .custom-product-card:hover {
+    opacity: 1; /* Fully opaque for the hovered card */
+}
+
+.custom-product-card:focus {
+    outline: 2px solid #3C3C43; /* Outline for keyboard navigation focus */
+}
+
+.custom-pagination {
+	display: flex;
+	justify-content: flex-end;
+	margin-top: 40px;
+	gap: 8px;
+}
+.custom-pagination span {
+	border-radius: 100px;
+	border: 1px solid #3C3C43;
+	padding: 8px 12px;
+	color: #3C3C43;
+	font-feature-settings: 'liga' off, 'clig' off;
+	font-family: "Source Code Pro";
+	font-size: 12px;
+	font-style: normal;
+	font-weight: 400;
+	line-height: normal;
+}
+.custom-pagination span a {
+    text-decoration: none;
+} 
+
+@media only screen and (max-width: 768px) {
+  .custom-products-section {
+  	padding-top: 60px;
+  	padding-bottom: 60px;
+  }
+  .custom-products-wrapper {
+  	padding-left: 20px;
+  	padding-right: 20px;
+  }
+  .custom-products {
+  	gap: 20px;
+  }
+  .custom-product-card {
+  	border-radius: 12px;
+  	width: 100%;
+  	max-width: 342px;
+  	min-width: 260px;
+  }
+  .custom-product-image {
+  	height: 200px;
+  }
+  .custom-product-body {
+  	padding: 20px;
+  	gap: 10px;
+  }
+  .custom-product-tags {
+  	gap: 5px;
+  }
+  .custom-product-tags span {
+    padding: 8px 10px;
+  }
+  .custom-add-to-cart {
+  	padding: 8px 10px;
+  }
+  .custom-product-card.flex {
+  	width: 100%;
+  	max-width: 552px;
+  	min-width: 320px;
+  }
+  .custom-product-card.flex .custom-product-image {
+  	width: 120px;
+  }
+  .custom-product-card.flex .custom-product-description {
+  	margin-top: 10px;
+  	margin-bottom: 30px;
+  }
+  .custom-pagination {
+  	margin-top: 40px;
+  	gap: 5px;
+  }
+  .custom-pagination span {
+  	padding: 8px 10px;
+  }
+}  
+</style>
+
+{% schema %}
+  {
+    "name": "Custom products",
+    "class": "custom-products-section",
+    "settings": [
+      {
+        "type": "text",
+        "id": "section_title",
+        "label": "Section Title"
+      },
+      {
+        "type": "textarea",
+        "id": "section_description",
+        "label": "Section Description"
+      },
+      {
+        "type": "collection",
+        "id": "collection",
+        "label": "Select collection"
+      },
+      {
+        "type": "radio",
+        "id": "columns",
+        "label": "Columns",
+        "options": [
+          {
+            "value": "col_2",
+            "label": "2 Columns"
+          },
+          {
+            "value": "col_3",
+            "label": "3 Columns"
+          }
+        ],
+        "default": "col_3"
+      },
+      {
+        "type": "number",
+        "id": "products_per_page",
+        "label": "Products per page",
+        "default": 12
+      }
+    ]
+  }
+{% endschema %}
